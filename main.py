@@ -58,18 +58,23 @@ def getdis(data,row,col,current_set_of_features, feature_to_odd,i):
 def leave_one_out_cross_validation(data, current_set_of_features, feature_to_odd):
     row = data.size // data[0].size  # 500
     col = data[0].size  # 11
+    feature_to_check = current_set_of_features.copy()
+    if feature_to_odd in feature_to_check:
+        feature_to_check.remove(feature_to_odd)
+    else:
+        feature_to_check.append(feature_to_odd)
 
     number_correctly_classfied = 0
     # small has
     # n^2 where n ==500
     for i in range(row):  # 500 it
-        object_to_classify = []
-        for feature in range(col):
-            object_to_classify.append(data[i][feature])
+        #object_to_classify = []
+        #for feature in range(col):
+            #object_to_classify.append(data[i][feature])
 
         lable_object_to_classify = data[i][0]
         nearest_neighbor_distance = float('inf')
-        nearest_neighbor_location = float('inf')
+        #nearest_neighbor_location = float('inf')
 
         # print(f'Looping over i, at the {i} location, Class {lable_object_to_classify}')
         for k in range(row):  # 500 it
@@ -78,25 +83,21 @@ def leave_one_out_cross_validation(data, current_set_of_features, feature_to_odd
                 continue
 
             distance = 0
-            feature_to_check = current_set_of_features.copy()
-            if feature_to_odd in feature_to_check:
-                feature_to_check.remove(feature_to_odd)
-            else:
-                feature_to_check.append(feature_to_odd)
+
 
             for j in range(len(feature_to_check)):
-                distance = distance + ((object_to_classify[feature_to_check[j]] - data[k][feature_to_check[j]]) ** 2)
+                distance = distance + ((data[i][feature_to_check[j]] - data[k][feature_to_check[j]]) ** 2)
 
             distance = math.sqrt(distance)
             if distance < nearest_neighbor_distance:
                 nearest_neighbor_distance = distance
-                nearest_neighbor_location = k
+                #nearest_neighbor_location = k
                 nearest_neighbor_label = data[k][0]
 
         if lable_object_to_classify == nearest_neighbor_label:
             number_correctly_classfied += 1
     accuracy = number_correctly_classfied / row
-    print(f'Using feature(s) {current_set_of_features} , [{feature_to_odd}] Accuracy is {round(accuracy * 100, 2)}%')
+    print(f'Using feature(s) {feature_to_check}  Accuracy is {round(accuracy * 100, 2)}%')
     res = []
     res.append(accuracy)
     res.append(feature_to_odd)
@@ -150,12 +151,9 @@ def feature_search(data):
             best_set = current_set_of_features.copy()
 
     print(f'Finished search! The best feature subset is  {best_set}, which has an accuracy of {round(best_accuracy * 100, 2)}%')
-    file1 = open("myfile.txt", "a")
-    file1.write(f'Finished search! The best feature subset is  {best_set}, which has an accuracy of {round(best_accuracy * 100, 2)}%\n')
-    file1.close()
+
 
 def backward_elimination(data):
-    # print('search func')
     best_accuracy = 0
     row = data.size // data[0].size  # 500
     col = data[0].size  # 11
@@ -174,8 +172,9 @@ def backward_elimination(data):
                 # print(f'--Considering adding the {j} feature')
                 temp_set_of_features = current_set_of_features.copy()
                 temp_set_of_features.remove(j)
-                accuracy = leave_one_out_cross_validation(data, current_set_of_features, j)  # current - j
-                print(f'Using feature(s) {temp_set_of_features} Accuracy is {round(accuracy * 100, 2)}%')
+                a = leave_one_out_cross_validation(data, current_set_of_features, j)  # current - j
+                accuracy = a[0]
+                #print(f'Using feature(s) {temp_set_of_features} Accuracy is {round(accuracy * 100, 2)}%')
 
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
@@ -183,10 +182,8 @@ def backward_elimination(data):
 
         print(f'Removing {feature_to_remove_at_this_level} from {current_set_of_features}')
         current_set_of_features.remove(feature_to_remove_at_this_level)
-        file1 = open("myfile.txt", "a")
-        file1.write(f'On level {i}, feature {current_set_of_features} was best, accuracy: {round(best_so_far_accuracy * 100, 2)}%\n')
-        file1.close()
-        print(f'On level {i}, feature {current_set_of_features} was best, accuracy: {round(best_so_far_accuracy * 100, 2)}%')
+        print(
+            f'On level {i}, feature {current_set_of_features} was best, accuracy: {round(best_so_far_accuracy * 100, 2)}%')
         if best_so_far_accuracy > best_accuracy:
             best_accuracy = best_so_far_accuracy
             best_set = current_set_of_features.copy()
